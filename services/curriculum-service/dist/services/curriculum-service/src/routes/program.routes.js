@@ -1,0 +1,15 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const program_controller_1 = require("../controllers/program.controller");
+const validate_middleware_1 = require("../middlewares/validate.middleware");
+const auth_middleware_1 = require("../middlewares/auth.middleware");
+const program_validation_1 = require("../validation/program.validation");
+const router = (0, express_1.Router)();
+router.get("/", program_controller_1.getPrograms);
+router.get("/:id", program_controller_1.getProgramById);
+router.use((0, auth_middleware_1.authMiddleware)(["admin"]));
+router.post("/", (0, validate_middleware_1.validate)(program_validation_1.createProgramSchema), program_controller_1.createProgram);
+router.patch("/:id", (0, validate_middleware_1.validate)(program_validation_1.updateProgramSchema), program_controller_1.updateProgram);
+router.delete("/:id", program_controller_1.deleteProgram);
+exports.default = router;

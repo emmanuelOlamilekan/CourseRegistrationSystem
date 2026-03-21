@@ -1,0 +1,15 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const studentCurriculum_controller_1 = require("../controllers/studentCurriculum.controller");
+const validate_middleware_1 = require("../middlewares/validate.middleware");
+const auth_middleware_1 = require("../middlewares/auth.middleware");
+const studentCurriculum_validation_1 = require("../validation/studentCurriculum.validation");
+const router = (0, express_1.Router)();
+router.use((0, auth_middleware_1.authMiddleware)(["admin", "course_advisor", "student"]));
+router.post("/assign", (0, validate_middleware_1.validate)(studentCurriculum_validation_1.assignCurriculumSchema), studentCurriculum_controller_1.assignCurriculum);
+router.post("/migrate", (0, validate_middleware_1.validate)(studentCurriculum_validation_1.migrateCurriculumSchema), studentCurriculum_controller_1.migrateCurriculum);
+router.post("/graduation-check", (0, validate_middleware_1.validate)(studentCurriculum_validation_1.graduationCheckSchema), studentCurriculum_controller_1.checkGraduation);
+router.get("/:studentId/:programId", studentCurriculum_controller_1.getCurrentCurriculum);
+router.get("/:studentId/:programId/history", studentCurriculum_controller_1.getCurriculumHistory);
+exports.default = router;

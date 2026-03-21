@@ -1,0 +1,86 @@
+version: "3.8"
+
+services:
+
+  api-gateway:
+    build: ./gateway/api-gateway
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./gateway/api-gateway/.env
+    depends_on:
+      - auth-service
+      - user-service
+      - course-service
+      - registration-service
+      - curriculum-service
+
+  auth-service:
+    build: ./services/auth-service
+    ports:
+      - "3001:3001"
+    env_file:
+      - ./services/auth-service/.env
+    depends_on:
+      - mongo
+      - rabbitmq
+
+  user-service:
+    build: ./services/user-service
+    ports:
+      - "3002:3002"
+    env_file:
+      - ./services/user-service/.env
+    depends_on:
+      - mongo
+      - rabbitmq
+
+  course-service:
+    build: ./services/course-service
+    ports:
+      - "3003:3003"
+    env_file:
+      - ./services/course-service/.env
+    depends_on:
+      - mongo
+      - rabbitmq
+
+  registration-service:
+    build: ./services/registration-service
+    ports:
+      - "3004:3004"
+    env_file:
+      - ./services/registration-service/.env
+    depends_on:
+      - mongo
+      - rabbitmq
+      - curriculum-service
+
+  curriculum-service:
+    build: ./services/curriculum-service
+    ports:
+      - "3005:3005"
+    env_file:
+      - ./services/curriculum-service/.env
+    depends_on:
+      - mongo
+      - rabbitmq
+
+  mongo:
+    image: mongo:6
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+volumes:
+  mongo-data:

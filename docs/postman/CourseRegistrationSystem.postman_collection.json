@@ -1,0 +1,1722 @@
+{
+  "info": {
+    "name": "Course Registration System",
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "description": "Complete API collection for the Course Registration System microservices.\n\n**Setup**\n1. Import this file into Postman.\n2. Run **Auth → Login as Admin** — the token is saved automatically to `{{accessToken}}`.\n3. Create requests (faculties, departments, courses, programs, etc.) auto-save their IDs into collection variables.\n\n**Base URL**: `http://localhost:3000` — change `{{baseUrl}}` in collection variables for other environments.\n\nSee `docs/auth-and-roles.md` for the full permission matrix.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl",         "value": "http://localhost:3000", "type": "string" },
+    { "key": "accessToken",     "value": "", "type": "string" },
+    { "key": "adminToken",      "value": "", "type": "string" },
+    { "key": "studentToken",    "value": "", "type": "string" },
+    { "key": "userId",          "value": "", "type": "string" },
+    { "key": "studentId",       "value": "", "type": "string" },
+    { "key": "facultyId",       "value": "", "type": "string" },
+    { "key": "departmentId",    "value": "", "type": "string" },
+    { "key": "courseId",        "value": "", "type": "string" },
+    { "key": "course2Id",       "value": "", "type": "string" },
+    { "key": "programId",       "value": "", "type": "string" },
+    { "key": "curriculumId",    "value": "", "type": "string" },
+    { "key": "courseMappingId", "value": "", "type": "string" },
+    { "key": "registrationId",  "value": "", "type": "string" }
+  ],
+  "item": [
+
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register (Student)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"student@uni.edu\",\n  \"password\": \"Student1234\",\n  \"role\": \"student\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Public. Rate limited to 20 req/15min. Returns _id, email, role only — password is never returned."
+          }
+        },
+        {
+          "name": "Register (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@uni.edu\",\n  \"password\": \"Admin1234\",\n  \"role\": \"admin\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login as Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.accessToken) {",
+                  "    pm.collectionVariables.set('accessToken', json.data.accessToken);",
+                  "    pm.collectionVariables.set('adminToken', json.data.accessToken);",
+                  "    console.log('Admin token saved to {{accessToken}} and {{adminToken}}');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@uni.edu\",\n  \"password\": \"Admin1234\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Saves accessToken automatically into {{accessToken}} and {{adminToken}} via test script."
+          }
+        },
+        {
+          "name": "Login as Student",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.accessToken) {",
+                  "    pm.collectionVariables.set('studentToken', json.data.accessToken);",
+                  "    console.log('Student token saved to {{studentToken}}');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"student@uni.edu\",\n  \"password\": \"Student1234\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me"]
+            }
+          }
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Ada\",\n  \"lastName\": \"Lovelace\",\n  \"departmentId\": \"{{departmentId}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me"]
+            }
+          }
+        },
+        {
+          "name": "Get Users by Faculty",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/users/faculty/{{facultyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "faculty", "{{facultyId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Users by Department",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/users/department/{{departmentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "department", "{{departmentId}}"]
+            }
+          }
+        },
+        {
+          "name": "(Admin) List All Users",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            }
+          }
+        },
+        {
+          "name": "(Admin) Create Student User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data._id) {",
+                  "    pm.collectionVariables.set('studentId', json.data._id);",
+                  "    console.log('studentId saved:', json.data._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newstudent@uni.edu\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"role\": \"student\",\n  \"matricNumber\": \"2024/CSC/001\",\n  \"departmentId\": \"{{departmentId}}\",\n  \"facultyId\": \"{{facultyId}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            },
+            "description": "Saves _id to {{studentId}} via test script. Students require matricNumber."
+          }
+        },
+        {
+          "name": "(Admin) Create Course Advisor",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"advisor@uni.edu\",\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith\",\n  \"role\": \"course_advisor\",\n  \"staffId\": \"STAFF-001\",\n  \"departmentId\": \"{{departmentId}}\",\n  \"facultyId\": \"{{facultyId}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            }
+          }
+        },
+        {
+          "name": "(Admin) Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "(Admin) Update User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "(Admin) Deactivate User",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}"]
+            },
+            "description": "Sets isActive: false. Does not delete the record."
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Courses",
+      "item": [
+        {
+          "name": "Faculties",
+          "item": [
+            {
+              "name": "List Faculties",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/faculties",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["faculties"]
+                },
+                "description": "Public — no token required."
+              }
+            },
+            {
+              "name": "Get Faculty by ID",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/faculties/{{facultyId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["faculties", "{{facultyId}}"]
+                }
+              }
+            },
+            {
+              "name": "(Admin) Create Faculty",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();",
+                      "if (json.data && json.data._id) {",
+                      "    pm.collectionVariables.set('facultyId', json.data._id);",
+                      "    console.log('facultyId saved:', json.data._id);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Faculty of Science\"\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/faculties",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["faculties"]
+                }
+              }
+            },
+            {
+              "name": "(Admin) Update Faculty",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Faculty of Science & Technology\"\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/faculties/{{facultyId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["faculties", "{{facultyId}}"]
+                }
+              }
+            },
+            {
+              "name": "(Admin) Delete Faculty",
+              "request": {
+                "method": "DELETE",
+                "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+                "url": {
+                  "raw": "{{baseUrl}}/faculties/{{facultyId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["faculties", "{{facultyId}}"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Departments",
+          "item": [
+            {
+              "name": "List Departments",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/departments",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["departments"]
+                }
+              }
+            },
+            {
+              "name": "Get Department by ID",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/departments/{{departmentId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["departments", "{{departmentId}}"]
+                }
+              }
+            },
+            {
+              "name": "List Departments by Faculty",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/departments/faculty/{{facultyId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["departments", "faculty", "{{facultyId}}"]
+                }
+              }
+            },
+            {
+              "name": "(Admin) Create Department",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();",
+                      "if (json.data && json.data._id) {",
+                      "    pm.collectionVariables.set('departmentId', json.data._id);",
+                      "    console.log('departmentId saved:', json.data._id);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Computer Science\",\n  \"facultyId\": \"{{facultyId}}\"\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/departments",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["departments"]
+                }
+              }
+            },
+            {
+              "name": "(Admin) Update Department",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Computer Science & Engineering\"\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/departments/{{departmentId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["departments", "{{departmentId}}"]
+                }
+              }
+            },
+            {
+              "name": "(Admin) Delete Department",
+              "request": {
+                "method": "DELETE",
+                "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+                "url": {
+                  "raw": "{{baseUrl}}/departments/{{departmentId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["departments", "{{departmentId}}"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Courses",
+          "item": [
+            {
+              "name": "List Courses",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/courses",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["courses"],
+                  "query": [
+                    { "key": "departmentId", "value": "{{departmentId}}", "disabled": true },
+                    { "key": "isActive", "value": "true", "disabled": true },
+                    { "key": "search", "value": "intro", "disabled": true }
+                  ]
+                },
+                "description": "Public. Optional query params: departmentId, isActive, search."
+              }
+            },
+            {
+              "name": "Get Course by ID",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/courses/{{courseId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["courses", "{{courseId}}"]
+                }
+              }
+            },
+            {
+              "name": "Get Course by Code",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/courses/code/CSC101",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["courses", "code", "CSC101"]
+                }
+              }
+            },
+            {
+              "name": "List Courses by Department",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/courses/department/{{departmentId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["courses", "department", "{{departmentId}}"]
+                }
+              }
+            },
+            {
+              "name": "(Admin) Create Course (CSC101)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();",
+                      "if (json.data && json.data._id) {",
+                      "    pm.collectionVariables.set('courseId', json.data._id);",
+                      "    console.log('courseId saved:', json.data._id);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Introduction to Programming\",\n  \"code\": \"CSC101\",\n  \"description\": \"Fundamentals of programming using Python\",\n  \"lecturerId\": \"{{userId}}\",\n  \"departmentId\": \"{{departmentId}}\",\n  \"capacity\": 120\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/courses",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["courses"]
+                }
+              }
+            },
+            {
+              "name": "(Admin) Create Course (CSC201 — needs CSC101 as prereq)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();",
+                      "if (json.data && json.data._id) {",
+                      "    pm.collectionVariables.set('course2Id', json.data._id);",
+                      "    console.log('course2Id saved:', json.data._id);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Data Structures\",\n  \"code\": \"CSC201\",\n  \"description\": \"Arrays, linked lists, trees and graphs\",\n  \"lecturerId\": \"{{userId}}\",\n  \"departmentId\": \"{{departmentId}}\",\n  \"capacity\": 80\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/courses",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["courses"]
+                }
+              }
+            },
+            {
+              "name": "(Admin) Update Course",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"capacity\": 150\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/courses/{{courseId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["courses", "{{courseId}}"]
+                }
+              }
+            },
+            {
+              "name": "(Admin) Delete Course",
+              "request": {
+                "method": "DELETE",
+                "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+                "url": {
+                  "raw": "{{baseUrl}}/courses/{{courseId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["courses", "{{courseId}}"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "Curriculum",
+      "item": [
+        {
+          "name": "Programs",
+          "item": [
+            {
+              "name": "List Programs",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+                "url": {
+                  "raw": "{{baseUrl}}/programs",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["programs"],
+                  "query": [
+                    { "key": "departmentId", "value": "{{departmentId}}", "disabled": true },
+                    { "key": "isActive", "value": "true", "disabled": true }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Program by ID",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+                "url": {
+                  "raw": "{{baseUrl}}/programs/{{programId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["programs", "{{programId}}"]
+                }
+              }
+            },
+            {
+              "name": "(Admin) Create Program",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();",
+                      "if (json.data && json.data._id) {",
+                      "    pm.collectionVariables.set('programId', json.data._id);",
+                      "    console.log('programId saved:', json.data._id);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"B.Sc. Computer Science\",\n  \"departmentId\": \"{{departmentId}}\",\n  \"duration\": 4\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/programs",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["programs"]
+                }
+              }
+            },
+            {
+              "name": "(Admin) Update Program",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"duration\": 5\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/programs/{{programId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["programs", "{{programId}}"]
+                }
+              }
+            },
+            {
+              "name": "(Admin) Delete Program",
+              "request": {
+                "method": "DELETE",
+                "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+                "url": {
+                  "raw": "{{baseUrl}}/programs/{{programId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["programs", "{{programId}}"]
+                },
+                "description": "Blocked if any curricula exist for the program."
+              }
+            }
+          ]
+        },
+        {
+          "name": "Curricula",
+          "item": [
+            {
+              "name": "List Curricula for Program",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+                "url": {
+                  "raw": "{{baseUrl}}/curricula/program/{{programId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["curricula", "program", "{{programId}}"]
+                }
+              }
+            },
+            {
+              "name": "Get Active Curriculum for Program",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+                "url": {
+                  "raw": "{{baseUrl}}/curricula/program/{{programId}}/active",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["curricula", "program", "{{programId}}", "active"]
+                }
+              }
+            },
+            {
+              "name": "Get Curriculum by ID",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+                "url": {
+                  "raw": "{{baseUrl}}/curricula/{{curriculumId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["curricula", "{{curriculumId}}"]
+                }
+              }
+            },
+            {
+              "name": "(Admin) Create Curriculum",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();",
+                      "if (json.data && json.data._id) {",
+                      "    pm.collectionVariables.set('curriculumId', json.data._id);",
+                      "    console.log('curriculumId saved:', json.data._id);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"programId\": \"{{programId}}\",\n  \"version\": 1\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/curricula",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["curricula"]
+                },
+                "description": "Created as inactive. Use Activate to make it the live version."
+              }
+            },
+            {
+              "name": "(Admin) Activate Curriculum",
+              "request": {
+                "method": "PATCH",
+                "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+                "url": {
+                  "raw": "{{baseUrl}}/curricula/{{curriculumId}}/activate",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["curricula", "{{curriculumId}}", "activate"]
+                },
+                "description": "Atomically deactivates all other curricula for the program and activates this one."
+              }
+            },
+            {
+              "name": "(Admin) Deactivate Curriculum",
+              "request": {
+                "method": "PATCH",
+                "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+                "url": {
+                  "raw": "{{baseUrl}}/curricula/{{curriculumId}}/deactivate",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["curricula", "{{curriculumId}}", "deactivate"]
+                }
+              }
+            },
+            {
+              "name": "(Admin) Delete Curriculum",
+              "request": {
+                "method": "DELETE",
+                "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+                "url": {
+                  "raw": "{{baseUrl}}/curricula/{{curriculumId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["curricula", "{{curriculumId}}"]
+                },
+                "description": "Blocked if any course mappings exist."
+              }
+            }
+          ]
+        },
+        {
+          "name": "Course Mappings",
+          "item": [
+            {
+              "name": "List Course Mappings",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+                "url": {
+                  "raw": "{{baseUrl}}/curricula/{{curriculumId}}/courses",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["curricula", "{{curriculumId}}", "courses"],
+                  "query": [
+                    { "key": "level", "value": "1", "disabled": true },
+                    { "key": "semester", "value": "1", "disabled": true }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Total Credit Units",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+                "url": {
+                  "raw": "{{baseUrl}}/curricula/{{curriculumId}}/courses/credits",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["curricula", "{{curriculumId}}", "courses", "credits"],
+                  "query": [
+                    { "key": "type", "value": "Core", "disabled": true }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "(Admin) Add Course Mapping (CSC101 — Core L1S1)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();",
+                      "if (json.data && json.data._id) {",
+                      "    pm.collectionVariables.set('courseMappingId', json.data._id);",
+                      "    console.log('courseMappingId saved:', json.data._id);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"courseId\": \"{{courseId}}\",\n  \"level\": 1,\n  \"semester\": 1,\n  \"type\": \"Core\",\n  \"creditUnit\": 3\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/curricula/{{curriculumId}}/courses",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["curricula", "{{curriculumId}}", "courses"]
+                },
+                "description": "A course can only be mapped once per curriculum (unique index on curriculumId+courseId)."
+              }
+            },
+            {
+              "name": "(Admin) Add Course Mapping (CSC201 — Core L2S1)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"courseId\": \"{{course2Id}}\",\n  \"level\": 2,\n  \"semester\": 1,\n  \"type\": \"Core\",\n  \"creditUnit\": 3\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/curricula/{{curriculumId}}/courses",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["curricula", "{{curriculumId}}", "courses"]
+                }
+              }
+            },
+            {
+              "name": "(Admin) Update Course Mapping",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"creditUnit\": 4\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/curricula/{{curriculumId}}/courses/{{courseMappingId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["curricula", "{{curriculumId}}", "courses", "{{courseMappingId}}"]
+                }
+              }
+            },
+            {
+              "name": "(Admin) Remove Course Mapping",
+              "request": {
+                "method": "DELETE",
+                "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+                "url": {
+                  "raw": "{{baseUrl}}/curricula/{{curriculumId}}/courses/{{courseMappingId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["curricula", "{{curriculumId}}", "courses", "{{courseMappingId}}"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Prerequisites",
+          "item": [
+            {
+              "name": "Get Direct Prerequisites for Course",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+                "url": {
+                  "raw": "{{baseUrl}}/prerequisites/{{course2Id}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["prerequisites", "{{course2Id}}"]
+                }
+              }
+            },
+            {
+              "name": "Get All Transitive Prerequisites",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+                "url": {
+                  "raw": "{{baseUrl}}/prerequisites/{{course2Id}}/all",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["prerequisites", "{{course2Id}}", "all"]
+                },
+                "description": "Returns full BFS chain of all required courseIds."
+              }
+            },
+            {
+              "name": "(Admin) Add Prerequisite (CSC201 requires CSC101)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"courseId\": \"{{course2Id}}\",\n  \"requiredCourseId\": \"{{courseId}}\"\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/prerequisites",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["prerequisites"]
+                },
+                "description": "DFS cycle detection runs before insert. Returns 400 if a cycle would be created."
+              }
+            },
+            {
+              "name": "(Admin) Remove Prerequisite",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"courseId\": \"{{course2Id}}\",\n  \"requiredCourseId\": \"{{courseId}}\"\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/prerequisites",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["prerequisites"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Student Curricula",
+          "item": [
+            {
+              "name": "Get Student's Current Curriculum",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+                "url": {
+                  "raw": "{{baseUrl}}/student-curricula/{{studentId}}/{{programId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["student-curricula", "{{studentId}}", "{{programId}}"]
+                }
+              }
+            },
+            {
+              "name": "Get Student's Curriculum History",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+                "url": {
+                  "raw": "{{baseUrl}}/student-curricula/{{studentId}}/{{programId}}/history",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["student-curricula", "{{studentId}}", "{{programId}}", "history"]
+                }
+              }
+            },
+            {
+              "name": "(Admin) Assign Curriculum to Student",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"studentId\": \"{{studentId}}\",\n  \"curriculumId\": \"{{curriculumId}}\"\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/student-curricula/assign",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["student-curricula", "assign"]
+                },
+                "description": "Fails if student already has an active curriculum for the program — use Migrate instead."
+              }
+            },
+            {
+              "name": "(Admin) Migrate Student to New Curriculum",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"studentId\": \"{{studentId}}\",\n  \"newCurriculumId\": \"{{curriculumId}}\"\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/student-curricula/migrate",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["student-curricula", "migrate"]
+                },
+                "description": "Atomic: deactivates old record, creates new one with migratedFrom audit field."
+              }
+            },
+            {
+              "name": "Graduation Eligibility Check",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"studentId\": \"{{studentId}}\",\n  \"programId\": \"{{programId}}\",\n  \"completedCourseIds\": [\"{{courseId}}\", \"{{course2Id}}\"]\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/student-curricula/graduation-check",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["student-curricula", "graduation-check"]
+                },
+                "description": "Returns eligible: true only when all core courses are completed AND total credit units are satisfied."
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "Registration",
+      "item": [
+        {
+          "name": "Enroll in Course",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data._id) {",
+                  "    pm.collectionVariables.set('registrationId', json.data._id);",
+                  "    console.log('registrationId saved:', json.data._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{studentToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": \"{{courseId}}\",\n  \"programId\": \"{{programId}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/registrations/enroll",
+              "host": ["{{baseUrl}}"],
+              "path": ["registrations", "enroll"]
+            },
+            "description": "Student-only. Validates: active curriculum → course in curriculum → prerequisites satisfied.\n\nUses {{studentToken}} — run 'Login as Student' first."
+          }
+        },
+        {
+          "name": "Drop Course",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{studentToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": \"{{courseId}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/registrations/drop",
+              "host": ["{{baseUrl}}"],
+              "path": ["registrations", "drop"]
+            },
+            "description": "Core courses cannot be dropped — returns 400."
+          }
+        },
+        {
+          "name": "My Registrations",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/registrations/my",
+              "host": ["{{baseUrl}}"],
+              "path": ["registrations", "my"],
+              "query": [
+                { "key": "status", "value": "enrolled", "disabled": true },
+                { "key": "status", "value": "completed", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "My Semester Registrations",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/registrations/my/{{programId}}/level/1/semester/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["registrations", "my", "{{programId}}", "level", "1", "semester", "1"]
+            }
+          }
+        },
+        {
+          "name": "(Lecturer) Get Course Enrollments",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/registrations/course/{{courseId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["registrations", "course", "{{courseId}}"]
+            }
+          }
+        },
+        {
+          "name": "(Lecturer) Get Enrollment Count",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/registrations/course/{{courseId}}/count",
+              "host": ["{{baseUrl}}"],
+              "path": ["registrations", "course", "{{courseId}}", "count"]
+            }
+          }
+        },
+        {
+          "name": "(Advisor) Mark Registration Complete",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/registrations/{{registrationId}}/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["registrations", "{{registrationId}}", "complete"]
+            },
+            "description": "Marks status as 'completed'. This is what satisfies prerequisite checks for future enrollments."
+          }
+        },
+        {
+          "name": "(Admin) Get Registration by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/registrations/{{registrationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["registrations", "{{registrationId}}"]
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Health Checks",
+      "item": [
+        {
+          "name": "Gateway Health",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "Auth Service (direct)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3001/health",
+              "raw": "http://localhost:3001/health"
+            }
+          }
+        },
+        {
+          "name": "User Service (direct)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "http://localhost:3002/health" }
+          }
+        },
+        {
+          "name": "Course Service (direct)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "http://localhost:3003/health" }
+          }
+        },
+        {
+          "name": "Registration Service (direct)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "http://localhost:3004/health" }
+          }
+        },
+        {
+          "name": "Curriculum Service (direct)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "http://localhost:3005/health" }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Flows",
+      "description": "End-to-end request sequences. Run these in order after a fresh setup.",
+      "item": [
+        {
+          "name": "1. Admin Setup",
+          "description": "Run this sequence in order to bootstrap the system:\n1. Register Admin\n2. Login as Admin → saves {{adminToken}}\n3. Create Faculty → saves {{facultyId}}\n4. Create Department → saves {{departmentId}}\n5. Create Course CSC101 → saves {{courseId}}\n6. Create Course CSC201 → saves {{course2Id}}\n7. Create Program → saves {{programId}}\n8. Create Curriculum → saves {{curriculumId}}\n9. Activate Curriculum\n10. Map CSC101 to Curriculum (L1S1 Core)\n11. Map CSC201 to Curriculum (L2S1 Core)\n12. Add Prerequisite: CSC201 requires CSC101",
+          "item": [
+            {
+              "name": "Step 1 — Register Admin",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"admin@uni.edu\",\n  \"password\": \"Admin1234\",\n  \"role\": \"admin\"\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] }
+              }
+            },
+            {
+              "name": "Step 2 — Login as Admin",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();",
+                      "if (json.data && json.data.accessToken) {",
+                      "    pm.collectionVariables.set('accessToken', json.data.accessToken);",
+                      "    pm.collectionVariables.set('adminToken', json.data.accessToken);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"admin@uni.edu\",\n  \"password\": \"Admin1234\"\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+              }
+            },
+            {
+              "name": "Step 3 — Create Faculty",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();",
+                      "if (json.data && json.data._id) pm.collectionVariables.set('facultyId', json.data._id);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"name\": \"Faculty of Science\"\n}", "options": { "raw": { "language": "json" } } },
+                "url": { "raw": "{{baseUrl}}/faculties", "host": ["{{baseUrl}}"], "path": ["faculties"] }
+              }
+            },
+            {
+              "name": "Step 4 — Create Department",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();",
+                      "if (json.data && json.data._id) pm.collectionVariables.set('departmentId', json.data._id);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"name\": \"Computer Science\",\n  \"facultyId\": \"{{facultyId}}\"\n}", "options": { "raw": { "language": "json" } } },
+                "url": { "raw": "{{baseUrl}}/departments", "host": ["{{baseUrl}}"], "path": ["departments"] }
+              }
+            },
+            {
+              "name": "Step 5 — Create Course CSC101",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();",
+                      "if (json.data && json.data._id) pm.collectionVariables.set('courseId', json.data._id);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"title\": \"Introduction to Programming\",\n  \"code\": \"CSC101\",\n  \"lecturerId\": \"{{userId}}\",\n  \"departmentId\": \"{{departmentId}}\",\n  \"capacity\": 100\n}", "options": { "raw": { "language": "json" } } },
+                "url": { "raw": "{{baseUrl}}/courses", "host": ["{{baseUrl}}"], "path": ["courses"] }
+              }
+            },
+            {
+              "name": "Step 6 — Create Course CSC201",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();",
+                      "if (json.data && json.data._id) pm.collectionVariables.set('course2Id', json.data._id);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"title\": \"Data Structures\",\n  \"code\": \"CSC201\",\n  \"lecturerId\": \"{{userId}}\",\n  \"departmentId\": \"{{departmentId}}\",\n  \"capacity\": 80\n}", "options": { "raw": { "language": "json" } } },
+                "url": { "raw": "{{baseUrl}}/courses", "host": ["{{baseUrl}}"], "path": ["courses"] }
+              }
+            },
+            {
+              "name": "Step 7 — Create Program",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();",
+                      "if (json.data && json.data._id) pm.collectionVariables.set('programId', json.data._id);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"name\": \"B.Sc. Computer Science\",\n  \"departmentId\": \"{{departmentId}}\",\n  \"duration\": 4\n}", "options": { "raw": { "language": "json" } } },
+                "url": { "raw": "{{baseUrl}}/programs", "host": ["{{baseUrl}}"], "path": ["programs"] }
+              }
+            },
+            {
+              "name": "Step 8 — Create Curriculum v1",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();",
+                      "if (json.data && json.data._id) pm.collectionVariables.set('curriculumId', json.data._id);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"programId\": \"{{programId}}\",\n  \"version\": 1\n}", "options": { "raw": { "language": "json" } } },
+                "url": { "raw": "{{baseUrl}}/curricula", "host": ["{{baseUrl}}"], "path": ["curricula"] }
+              }
+            },
+            {
+              "name": "Step 9 — Activate Curriculum",
+              "request": {
+                "method": "PATCH",
+                "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+                "url": { "raw": "{{baseUrl}}/curricula/{{curriculumId}}/activate", "host": ["{{baseUrl}}"], "path": ["curricula", "{{curriculumId}}", "activate"] }
+              }
+            },
+            {
+              "name": "Step 10 — Map CSC101 (L1S1 Core)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();",
+                      "if (json.data && json.data._id) pm.collectionVariables.set('courseMappingId', json.data._id);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"courseId\": \"{{courseId}}\",\n  \"level\": 1,\n  \"semester\": 1,\n  \"type\": \"Core\",\n  \"creditUnit\": 3\n}", "options": { "raw": { "language": "json" } } },
+                "url": { "raw": "{{baseUrl}}/curricula/{{curriculumId}}/courses", "host": ["{{baseUrl}}"], "path": ["curricula", "{{curriculumId}}", "courses"] }
+              }
+            },
+            {
+              "name": "Step 11 — Map CSC201 (L2S1 Core)",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"courseId\": \"{{course2Id}}\",\n  \"level\": 2,\n  \"semester\": 1,\n  \"type\": \"Core\",\n  \"creditUnit\": 3\n}", "options": { "raw": { "language": "json" } } },
+                "url": { "raw": "{{baseUrl}}/curricula/{{curriculumId}}/courses", "host": ["{{baseUrl}}"], "path": ["curricula", "{{curriculumId}}", "courses"] }
+              }
+            },
+            {
+              "name": "Step 12 — Add Prerequisite (CSC201 needs CSC101)",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"courseId\": \"{{course2Id}}\",\n  \"requiredCourseId\": \"{{courseId}}\"\n}", "options": { "raw": { "language": "json" } } },
+                "url": { "raw": "{{baseUrl}}/prerequisites", "host": ["{{baseUrl}}"], "path": ["prerequisites"] }
+              }
+            }
+          ]
+        },
+        {
+          "name": "2. Student Registration Flow",
+          "description": "Run AFTER Admin Setup Flow. Demonstrates the full enrollment sequence including prerequisite enforcement:\n1. Register Student\n2. Login as Student → saves {{studentToken}}\n3. (Admin) Create Student Profile → saves {{studentId}}\n4. (Admin) Assign Curriculum to Student\n5. Enroll in CSC101 (no prerequisites)\n6. Try to enroll in CSC201 → fails (CSC101 not yet completed)\n7. (Admin) Mark CSC101 complete\n8. Enroll in CSC201 → succeeds",
+          "item": [
+            {
+              "name": "Step 1 — Register Student",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"email\": \"student@uni.edu\",\n  \"password\": \"Student1234\",\n  \"role\": \"student\"\n}", "options": { "raw": { "language": "json" } } },
+                "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] }
+              }
+            },
+            {
+              "name": "Step 2 — Login as Student",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();",
+                      "if (json.data && json.data.accessToken) {",
+                      "    pm.collectionVariables.set('studentToken', json.data.accessToken);",
+                      "    console.log('Student token saved');",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"email\": \"student@uni.edu\",\n  \"password\": \"Student1234\"\n}", "options": { "raw": { "language": "json" } } },
+                "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+              }
+            },
+            {
+              "name": "Step 3 — (Admin) Create Student Profile",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();",
+                      "if (json.data && json.data._id) pm.collectionVariables.set('studentId', json.data._id);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"email\": \"student@uni.edu\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"role\": \"student\",\n  \"matricNumber\": \"2024/CSC/001\",\n  \"departmentId\": \"{{departmentId}}\",\n  \"facultyId\": \"{{facultyId}}\"\n}", "options": { "raw": { "language": "json" } } },
+                "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] }
+              }
+            },
+            {
+              "name": "Step 4 — (Admin) Assign Curriculum to Student",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"studentId\": \"{{studentId}}\",\n  \"curriculumId\": \"{{curriculumId}}\"\n}", "options": { "raw": { "language": "json" } } },
+                "url": { "raw": "{{baseUrl}}/student-curricula/assign", "host": ["{{baseUrl}}"], "path": ["student-curricula", "assign"] }
+              }
+            },
+            {
+              "name": "Step 5 — Enroll in CSC101",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();",
+                      "if (json.data && json.data._id) pm.collectionVariables.set('registrationId', json.data._id);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"courseId\": \"{{courseId}}\",\n  \"programId\": \"{{programId}}\"\n}", "options": { "raw": { "language": "json" } } },
+                "url": { "raw": "{{baseUrl}}/registrations/enroll", "host": ["{{baseUrl}}"], "path": ["registrations", "enroll"] }
+              }
+            },
+            {
+              "name": "Step 6 — Try to Enroll in CSC201 (expect 400)",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"courseId\": \"{{course2Id}}\",\n  \"programId\": \"{{programId}}\"\n}", "options": { "raw": { "language": "json" } } },
+                "url": { "raw": "{{baseUrl}}/registrations/enroll", "host": ["{{baseUrl}}"], "path": ["registrations", "enroll"] },
+                "description": "Expected: 400 'Prerequisites not completed. Missing course(s): <CSC101 id>'"
+              }
+            },
+            {
+              "name": "Step 7 — (Admin) Mark CSC101 Complete",
+              "request": {
+                "method": "PATCH",
+                "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+                "url": { "raw": "{{baseUrl}}/registrations/{{registrationId}}/complete", "host": ["{{baseUrl}}"], "path": ["registrations", "{{registrationId}}", "complete"] },
+                "description": "Marks CSC101 enrollment as completed. Now satisfies the prerequisite for CSC201."
+              }
+            },
+            {
+              "name": "Step 8 — Enroll in CSC201 (expect 201)",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"courseId\": \"{{course2Id}}\",\n  \"programId\": \"{{programId}}\"\n}", "options": { "raw": { "language": "json" } } },
+                "url": { "raw": "{{baseUrl}}/registrations/enroll", "host": ["{{baseUrl}}"], "path": ["registrations", "enroll"] },
+                "description": "Should now succeed — CSC101 is completed."
+              }
+            }
+          ]
+        }
+      ]
+    }
+
+  ]
+}
