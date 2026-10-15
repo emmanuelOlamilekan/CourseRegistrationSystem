@@ -43,7 +43,7 @@ export default function LoginPage() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
           {mutation.isError && (
             <Alert variant="error" className="mb-4">
-              {(mutation.error as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Login failed"}
+              {(mutation.error as Error)?.message ?? "Login failed"}
             </Alert>
           )}
 

@@ -8,11 +8,18 @@ export const apiClient = axios.create({
   timeout: 10_000,
 });
 
-// Attach JWT on every request
+// Attach JWT on every request — read from Zustand's persisted store key
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("accessToken");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  try {
+    const raw = localStorage.getItem("auth-storage");
+    if (raw) {
+      const { state } = JSON.parse(raw) as { state: { token?: string } };
+      if (state?.token) {
+        config.headers.Authorization = `Bearer ${state.token}`;
+      }
+    }
+  } catch {
+    // ignore parse errors
   }
   return config;
 });
@@ -22,9 +29,6 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError<{ message?: string }>) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      // Let the router's ProtectedRoute handle the redirect
       window.dispatchEvent(new Event("auth:logout"));
     }
     const message =
